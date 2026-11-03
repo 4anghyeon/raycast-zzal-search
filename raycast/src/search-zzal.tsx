@@ -13,6 +13,7 @@ import {
 } from "@raycast/api";
 import { showFailureToast, useCachedPromise } from "@raycast/utils";
 import { Zzal } from "@zzal/shared/src/types";
+import { useEffect } from "react";
 import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
 import { deleteZzal, fetchOriginal, fetchZzals } from "./lib/api";
@@ -144,6 +145,18 @@ export default function SearchZzal() {
   });
   useThumbnailSync(data ?? []);
   useOriginalFallbackSync(data ?? []);
+
+  // 캐시가 비어 처음 전체 동기화할 때만 보여준다. 등록/수정/삭제 이후의 재조회는
+  // data가 이미 있어서 해당되지 않고, 각자 자기 토스트를 보여준다.
+  useEffect(() => {
+    if (!isLoading || data !== undefined) return;
+
+    let toast: Toast | undefined;
+    showToast({ style: Toast.Style.Animated, title: "짤방 불러오는 중..." }).then((t) => (toast = t));
+    return () => {
+      toast?.hide();
+    };
+  }, [isLoading, data]);
 
   function gridContent(zzal: Zzal) {
     if (hasCachedThumb(zzal.id)) return thumbPath(zzal.id);

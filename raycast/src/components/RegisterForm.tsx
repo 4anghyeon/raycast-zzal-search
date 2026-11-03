@@ -51,6 +51,7 @@ export default function RegisterForm({ onRegistered }: RegisterFormProps) {
     }
 
     try {
+      await showToast({ style: Toast.Style.Animated, title: "등록 중..." });
       const result = await registerZzal(filePath, values.name, values.keywords.split(","));
       if (result.status === "duplicate") {
         await showToast({ style: Toast.Style.Failure, title: "이미 등록된 짤방입니다" });
