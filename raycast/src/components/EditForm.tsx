@@ -2,7 +2,7 @@ import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@ray
 import { Zzal } from "@zzal/shared/src/types";
 import { useState } from "react";
 import { updateZzal } from "../lib/api";
-import { errorMessage } from "../lib/error-message";
+import { errorMessage, errorToastAction } from "../lib/error-message";
 
 interface FormValues {
   name: string;
@@ -26,7 +26,12 @@ export default function EditForm({ zzal, onUpdated }: EditFormProps) {
       onUpdated?.();
       pop();
     } catch (error) {
-      await showToast({ style: Toast.Style.Failure, title: "수정 실패", message: errorMessage(error) });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "수정 실패",
+        message: errorMessage(error),
+        primaryAction: errorToastAction(error),
+      });
     }
   }
 

@@ -13,6 +13,15 @@ interface ApiErrorBody {
   item?: Zzal;
 }
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 // fetch 응답은 unknown이라, 객체 형태만 가볍게 확인하고 나머지 필드 모양은 서버 구현을 신뢰한다.
 async function parseJson<T>(res: Response): Promise<T> {
   const data: unknown = await res.json();
@@ -50,7 +59,7 @@ export async function fetchZzals(): Promise<Zzal[]> {
   const res = await request(`/zzals?since=${since}`);
   if (!res.ok) {
     const error = await readError(res);
-    throw new Error(error.message);
+    throw new ApiError(res.status, error.message);
   }
 
   const data = await parseJson<{ items: Zzal[]; serverTime: number }>(res);
@@ -81,7 +90,7 @@ export async function registerZzal(filePath: string, name: string, keywords: str
   }
   if (!res.ok) {
     const error = await readError(res);
-    throw new Error(error.message);
+    throw new ApiError(res.status, error.message);
   }
 
   const item = await parseJson<Zzal>(res);
@@ -97,7 +106,7 @@ export async function updateZzal(id: string, patch: { name?: string; keywords?: 
   });
   if (!res.ok) {
     const error = await readError(res);
-    throw new Error(error.message);
+    throw new ApiError(res.status, error.message);
   }
 
   const item = await parseJson<Zzal>(res);
@@ -121,7 +130,7 @@ export async function deleteZzal(id: string): Promise<void> {
   const res = await request(`/zzals/${id}`, { method: "DELETE" });
   if (!res.ok && res.status !== 404) {
     const error = await readError(res);
-    throw new Error(error.message);
+    throw new ApiError(res.status, error.message);
   }
   store.removeLocal(id);
 }

@@ -3,7 +3,7 @@ import { isSupportedImageExt } from "@zzal/shared/src/image-formats";
 import { basename, extname } from "path";
 import { useState } from "react";
 import { registerZzal } from "../lib/api";
-import { errorMessage } from "../lib/error-message";
+import { errorMessage, errorToastAction } from "../lib/error-message";
 
 interface FormValues {
   files: string[];
@@ -61,7 +61,12 @@ export default function RegisterForm({ onRegistered }: RegisterFormProps) {
       onRegistered?.();
       pop();
     } catch (error) {
-      await showToast({ style: Toast.Style.Failure, title: "등록 실패", message: errorMessage(error) });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "등록 실패",
+        message: errorMessage(error),
+        primaryAction: errorToastAction(error),
+      });
     }
   }
 
