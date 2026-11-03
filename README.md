@@ -11,15 +11,9 @@
 └── raycast/           # Raycast 확장. 커맨드는 "짤방 검색" 하나뿐이고, 등록/수정/삭제는 그 화면의 액션으로 처리
 ```
 
-## 다른 컴퓨터에 설치하기 (Worker는 이미 배포되어 있는 경우)
+## 설치하기
 
-```bash
-git clone <저장소>
-cd zzal-search
-npm install
-cd raycast
-npm run dev
-```
+[Releases](../../releases)에서 `zzal-search.zip`을 내려받아 압축을 풀고, Raycast 앱에서 **Import Extension** 커맨드로 압축 해제시 생성된 폴더를 선택합니다.
 
 Raycast에서 "짤방 검색" 커맨드의 설정(⌘,)을 열어 입력:
 
