@@ -7,9 +7,13 @@
     {
       "binding": "DB",
       "database_name": "zzal-db",
-      // 로컬 전용 플레이스홀더입니다. `wrangler d1 create zzal-db`로 실제 DB를 만든 뒤
-      // 출력되는 database_id로 교체하세요. --local 모드에서는 이 값이 없어도 동작합니다.
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "b385789b-ac8d-4154-b407-e0c3e9496c8d"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "zzal-files"
     }
   ]
 }
