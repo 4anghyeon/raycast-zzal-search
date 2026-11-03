@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": [
     "raycast",
-    "packages/*"
+    "packages/*",
+    "worker"
   ]
 }

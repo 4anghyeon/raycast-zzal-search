@@ -10,6 +10,10 @@ raycast-env.d.ts
 compiled_raycast_swift
 compiled_raycast_rust
 
+# Cloudflare Worker
+.wrangler
+.dev.vars
+
 # misc
 .DS_Store
 .idea
