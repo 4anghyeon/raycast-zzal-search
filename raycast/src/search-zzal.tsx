@@ -18,6 +18,7 @@ import { join } from "path";
 import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
 import { deleteZzal, fetchZzals } from "./lib/api";
+import { errorMessage } from "./lib/error-message";
 
 // 실제 썸네일/원본 캐시가 생기기 전까지, 붙여넣기·복사 동작을 검증하기 위한 자리 표시 파일
 const mockFilePath = join(environment.assetsPath, "extension-icon.png");
@@ -65,9 +66,13 @@ function DeleteAction({ zzal, onDeleted }: { zzal: Zzal; onDeleted: () => void }
     });
     if (!confirmed) return;
 
-    await deleteZzal(zzal.id);
-    await showToast({ style: Toast.Style.Success, title: "삭제 완료" });
-    onDeleted();
+    try {
+      await deleteZzal(zzal.id);
+      await showToast({ style: Toast.Style.Success, title: "삭제 완료" });
+      onDeleted();
+    } catch (error) {
+      await showToast({ style: Toast.Style.Failure, title: "삭제 실패", message: errorMessage(error) });
+    }
   }
 
   return (

@@ -3,6 +3,7 @@ import { isSupportedImageExt } from "@zzal/shared/src/image-formats";
 import { basename, extname } from "path";
 import { useState } from "react";
 import { registerZzal } from "../lib/api";
+import { errorMessage } from "../lib/error-message";
 
 interface FormValues {
   files: string[];
@@ -50,15 +51,19 @@ export default function RegisterForm({ onRegistered }: RegisterFormProps) {
       return;
     }
 
-    const result = await registerZzal(filePath, values.name, values.keywords.split(","));
-    if (result.status === "duplicate") {
-      await showToast({ style: Toast.Style.Failure, title: "이미 등록된 짤방입니다" });
-      return;
-    }
+    try {
+      const result = await registerZzal(filePath, values.name, values.keywords.split(","));
+      if (result.status === "duplicate") {
+        await showToast({ style: Toast.Style.Failure, title: "이미 등록된 짤방입니다" });
+        return;
+      }
 
-    await showToast({ style: Toast.Style.Success, title: "등록 완료" });
-    onRegistered?.();
-    pop();
+      await showToast({ style: Toast.Style.Success, title: "등록 완료" });
+      onRegistered?.();
+      pop();
+    } catch (error) {
+      await showToast({ style: Toast.Style.Failure, title: "등록 실패", message: errorMessage(error) });
+    }
   }
 
   return (

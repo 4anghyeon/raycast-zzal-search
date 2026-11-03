@@ -1,64 +1,67 @@
 import { Cache } from "@raycast/api";
 import { Zzal } from "@zzal/shared/src/types";
-import { mockZzals } from "./mock-data";
+
+interface CacheShape {
+  items: Record<string, Zzal>;
+  lastSync: number;
+}
 
 const cache = new Cache();
 const KEY = "zzals";
+const EMPTY_CACHE: CacheShape = { items: {}, lastSync: 0 };
 
-function parseZzals(raw: string): Zzal[] {
-  const data: unknown = JSON.parse(raw);
-  return Array.isArray(data) ? (data as Zzal[]) : [];
+function isCacheShape(value: unknown): value is CacheShape {
+  if (typeof value !== "object" || value === null) return false;
+  const data = value as Record<string, unknown>;
+  return typeof data.items === "object" && data.items !== null && typeof data.lastSync === "number";
 }
 
-function readAll(): Zzal[] {
+function readCache(): CacheShape {
   const raw = cache.get(KEY);
-  if (raw === undefined) {
-    cache.set(KEY, JSON.stringify(mockZzals));
-    return mockZzals;
-  }
-  return parseZzals(raw);
+  if (raw === undefined) return EMPTY_CACHE;
+
+  const data: unknown = JSON.parse(raw);
+  return isCacheShape(data) ? data : EMPTY_CACHE;
 }
 
-function writeAll(zzals: Zzal[]): void {
-  cache.set(KEY, JSON.stringify(zzals));
+function writeCache(data: CacheShape): void {
+  cache.set(KEY, JSON.stringify(data));
 }
 
 export function list(): Zzal[] {
-  return readAll().filter((zzal) => zzal.deletedAt === null);
+  return Object.values(readCache().items).filter((zzal) => zzal.deletedAt === null);
 }
 
 export function findById(id: string): Zzal | undefined {
-  return readAll().find((zzal) => zzal.id === id);
+  return readCache().items[id];
 }
 
-export function upsert(zzal: Zzal): void {
-  const all = readAll();
-  const idx = all.findIndex((item) => item.id === zzal.id);
-  if (idx === -1) {
-    all.push(zzal);
-  } else {
-    all[idx] = zzal;
+export function getLastSync(): number {
+  return readCache().lastSync;
+}
+
+// 서버 동기화 결과를 캐시에 병합한다. 삭제된 항목은 캐시에서도 제거한다.
+export function mergeSync(items: Zzal[], serverTime: number): void {
+  const data = readCache();
+  for (const item of items) {
+    if (item.deletedAt !== null) {
+      delete data.items[item.id];
+    } else {
+      data.items[item.id] = item;
+    }
   }
-  writeAll(all);
+  data.lastSync = serverTime;
+  writeCache(data);
 }
 
-export function update(id: string, patch: Partial<Pick<Zzal, "name" | "keywords">>): Zzal | undefined {
-  const all = readAll();
-  const idx = all.findIndex((item) => item.id === id);
-  if (idx === -1) return undefined;
-
-  const updated: Zzal = { ...all[idx], ...patch, updatedAt: Date.now() };
-  all[idx] = updated;
-  writeAll(all);
-  return updated;
+export function upsertLocal(item: Zzal): void {
+  const data = readCache();
+  data.items[item.id] = item;
+  writeCache(data);
 }
 
-export function softDelete(id: string): void {
-  const all = readAll();
-  const idx = all.findIndex((item) => item.id === id);
-  if (idx === -1) return;
-
-  const now = Date.now();
-  all[idx] = { ...all[idx], deletedAt: now, updatedAt: now };
-  writeAll(all);
+export function removeLocal(id: string): void {
+  const data = readCache();
+  delete data.items[id];
+  writeCache(data);
 }

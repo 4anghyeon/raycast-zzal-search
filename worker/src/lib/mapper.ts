@@ -28,6 +28,17 @@ export async function findRowById(db: D1Database, id: string): Promise<ZzalRow |
   return row ?? null;
 }
 
+// since 생략 시 전체, 있으면 updated_at >= since (삭제된 항목도 포함해 동기화 클라이언트가 반영하게 한다).
+export async function listRows(db: D1Database, since?: number): Promise<ZzalRow[]> {
+  const statement =
+    since !== undefined
+      ? db.prepare(`SELECT ${ZZAL_COLUMNS} FROM zzals WHERE updated_at >= ?`).bind(since)
+      : db.prepare(`SELECT ${ZZAL_COLUMNS} FROM zzals`);
+
+  const { results } = await statement.all<ZzalRow>();
+  return results;
+}
+
 export function rowToZzal(row: ZzalRow): Zzal {
   return {
     id: row.id,

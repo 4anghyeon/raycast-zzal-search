@@ -23,6 +23,22 @@
     }
   ],
   "tools": [],
+  "preferences": [
+    {
+      "name": "apiUrl",
+      "title": "Worker URL",
+      "description": "Cloudflare Worker 주소 (예: https://zzal-worker.xxx.workers.dev)",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "apiToken",
+      "title": "API 토큰",
+      "description": "Worker에 설정한 AUTH_TOKEN",
+      "type": "password",
+      "required": true
+    }
+  ],
   "dependencies": {
     "@raycast/api": "^2.10.1",
     "@raycast/utils": "^2.2.7",

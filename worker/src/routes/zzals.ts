@@ -4,14 +4,22 @@ import { Zzal } from "@zzal/shared/src/types";
 import { Hono } from "hono";
 import { Env } from "../env";
 import { detectImageType } from "../lib/magic-bytes";
-import { findRowById, rowToZzal } from "../lib/mapper";
+import { findRowById, listRows, rowToZzal } from "../lib/mapper";
 
 export const zzalsRoute = new Hono<{ Bindings: Env }>();
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // D4
 
-zzalsRoute.get("/", (c) => {
-  return c.json({ items: [], serverTime: Date.now() });
+zzalsRoute.get("/", async (c) => {
+  const sinceParam = c.req.query("since");
+  const since = sinceParam !== undefined ? Number(sinceParam) : undefined;
+
+  if (since !== undefined && Number.isNaN(since)) {
+    return c.json({ error: { code: "INVALID_QUERY", message: "since는 숫자(epoch ms)여야 합니다" } }, 400);
+  }
+
+  const rows = await listRows(c.env.DB, since);
+  return c.json({ items: rows.map(rowToZzal), serverTime: Date.now() });
 });
 
 zzalsRoute.post("/", async (c) => {

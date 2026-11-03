@@ -1,7 +1,8 @@
 import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@raycast/api";
+import { Zzal } from "@zzal/shared/src/types";
 import { useState } from "react";
 import { updateZzal } from "../lib/api";
-import { Zzal } from "@zzal/shared/src/types";
+import { errorMessage } from "../lib/error-message";
 
 interface FormValues {
   name: string;
@@ -19,10 +20,14 @@ export default function EditForm({ zzal, onUpdated }: EditFormProps) {
   const { pop } = useNavigation();
 
   async function handleSubmit(values: FormValues) {
-    await updateZzal(zzal.id, { name: values.name, keywords: values.keywords.split(",") });
-    await showToast({ style: Toast.Style.Success, title: "수정 완료" });
-    onUpdated?.();
-    pop();
+    try {
+      await updateZzal(zzal.id, { name: values.name, keywords: values.keywords.split(",") });
+      await showToast({ style: Toast.Style.Success, title: "수정 완료" });
+      onUpdated?.();
+      pop();
+    } catch (error) {
+      await showToast({ style: Toast.Style.Failure, title: "수정 실패", message: errorMessage(error) });
+    }
   }
 
   return (
