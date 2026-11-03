@@ -47,7 +47,7 @@ export async function fetchZzals(): Promise<Zzal[]> {
   }
 
   const data = await parseJson<{ items: Zzal[]; serverTime: number }>(res);
-  store.mergeSync(data.items, data.serverTime);
+  store.mergeSync(data.items, data.serverTime, since === 0);
   return store.list();
 }
 
@@ -100,6 +100,12 @@ export async function updateZzal(id: string, patch: { name?: string; keywords?: 
 
 export async function fetchThumb(id: string): Promise<ArrayBuffer | null> {
   const res = await request(`/zzals/${id}/thumb`);
+  if (!res.ok) return null;
+  return res.arrayBuffer();
+}
+
+export async function fetchOriginal(id: string): Promise<ArrayBuffer | null> {
+  const res = await request(`/zzals/${id}/file`);
   if (!res.ok) return null;
   return res.arrayBuffer();
 }

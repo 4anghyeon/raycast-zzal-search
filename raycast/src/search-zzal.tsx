@@ -4,7 +4,6 @@ import {
   Alert,
   Clipboard,
   confirmAlert,
-  environment,
   Grid,
   Icon,
   Keyboard,
@@ -14,25 +13,45 @@ import {
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { Zzal } from "@zzal/shared/src/types";
-import { join } from "path";
 import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
-import { deleteZzal, fetchZzals } from "./lib/api";
+import { deleteZzal, fetchOriginal, fetchZzals } from "./lib/api";
 import { errorMessage } from "./lib/error-message";
-import { hasCachedThumb, thumbPath } from "./lib/files";
+import { hasCachedOriginal, hasCachedThumb, originalPath, saveOriginal, thumbPath } from "./lib/files";
 import { useThumbnailSync } from "./lib/use-thumbnail-sync";
 
-// 실제 썸네일/원본 캐시가 생기기 전까지, 붙여넣기·복사 동작을 검증하기 위한 자리 표시 파일
-const mockFilePath = join(environment.assetsPath, "extension-icon.png");
+async function ensureOriginalPath(zzal: Zzal): Promise<string> {
+  if (hasCachedOriginal(zzal.id, zzal.ext)) {
+    return originalPath(zzal.id, zzal.ext);
+  }
 
-async function pasteZzal() {
-  await Clipboard.paste({ file: mockFilePath });
-  await showToast({ style: Toast.Style.Success, title: "붙여넣기 완료 (mock)" });
+  await showToast({ style: Toast.Style.Animated, title: "원본 다운로드 중..." });
+  const data = await fetchOriginal(zzal.id);
+  if (!data) {
+    throw new Error("원본 파일을 받아올 수 없습니다");
+  }
+  saveOriginal(zzal.id, zzal.ext, data);
+  return originalPath(zzal.id, zzal.ext);
 }
 
-async function copyZzal() {
-  await Clipboard.copy({ file: mockFilePath });
-  await showToast({ style: Toast.Style.Success, title: "복사 완료 (mock)" });
+async function pasteZzal(zzal: Zzal) {
+  try {
+    const path = await ensureOriginalPath(zzal);
+    await Clipboard.paste({ file: path });
+    await showToast({ style: Toast.Style.Success, title: "붙여넣기 완료" });
+  } catch (error) {
+    await showToast({ style: Toast.Style.Failure, title: "붙여넣기 실패", message: errorMessage(error) });
+  }
+}
+
+async function copyZzal(zzal: Zzal) {
+  try {
+    const path = await ensureOriginalPath(zzal);
+    await Clipboard.copy({ file: path });
+    await showToast({ style: Toast.Style.Success, title: "복사 완료" });
+  } catch (error) {
+    await showToast({ style: Toast.Style.Failure, title: "복사 실패", message: errorMessage(error) });
+  }
 }
 
 function RegisterAction({ onRegistered }: { onRegistered: () => void }) {
@@ -93,7 +112,7 @@ export default function SearchZzal() {
   useThumbnailSync(data ?? []);
 
   return (
-    <Grid isLoading={isLoading} inset={Grid.Inset.Small}>
+    <Grid isLoading={isLoading} inset={Grid.Inset.Zero}>
       {(data ?? []).map((zzal) => (
         <Grid.Item
           key={zzal.id}
@@ -102,8 +121,8 @@ export default function SearchZzal() {
           keywords={zzal.keywords}
           actions={
             <ActionPanel>
-              <Action title="붙여넣기" icon={Icon.TextInput} onAction={pasteZzal} />
-              <Action title="복사" icon={Icon.Clipboard} onAction={copyZzal} />
+              <Action title="붙여넣기" icon={Icon.TextInput} onAction={() => pasteZzal(zzal)} />
+              <Action title="복사" icon={Icon.Clipboard} onAction={() => copyZzal(zzal)} />
               <EditAction zzal={zzal} onUpdated={revalidate} />
               <DeleteAction zzal={zzal} onDeleted={revalidate} />
               <RegisterAction onRegistered={revalidate} />

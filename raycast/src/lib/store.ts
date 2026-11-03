@@ -41,17 +41,20 @@ export function getLastSync(): number {
 }
 
 // 서버 동기화 결과를 캐시에 병합한다. 삭제된 항목은 캐시에서도 제거한다.
-export function mergeSync(items: Zzal[], serverTime: number): void {
+// isFullSync면 응답을 그대로 전체로 간주해 로컬에만 남아있는 항목(완전 삭제된 행 등)도 정리한다.
+export function mergeSync(items: Zzal[], serverTime: number, isFullSync: boolean): void {
   const data = readCache();
+  const nextItems: Record<string, Zzal> = isFullSync ? {} : data.items;
+
   for (const item of items) {
     if (item.deletedAt !== null) {
-      delete data.items[item.id];
+      delete nextItems[item.id];
     } else {
-      data.items[item.id] = item;
+      nextItems[item.id] = item;
     }
   }
-  data.lastSync = serverTime;
-  writeCache(data);
+
+  writeCache({ items: nextItems, lastSync: serverTime });
 }
 
 export function upsertLocal(item: Zzal): void {

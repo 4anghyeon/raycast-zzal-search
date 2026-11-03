@@ -94,6 +94,22 @@ zzalsRoute.post("/", async (c) => {
   return c.json(item, 201);
 });
 
+zzalsRoute.get("/:id/file", async (c) => {
+  const id = c.req.param("id");
+  const row = await findRowById(c.env.DB, id);
+
+  if (!row || row.deleted_at !== null) {
+    return c.json({ error: { code: "NOT_FOUND", message: "짤방을 찾을 수 없습니다" } }, 404);
+  }
+
+  const object = await c.env.FILES.get(`originals/${id}.${row.ext}`);
+  if (!object) {
+    return c.json({ error: { code: "NOT_FOUND", message: "원본 파일을 찾을 수 없습니다" } }, 404);
+  }
+
+  return new Response(object.body, { headers: { "Content-Type": row.mime } });
+});
+
 zzalsRoute.get("/:id/thumb", async (c) => {
   const id = c.req.param("id");
   const object = await c.env.FILES.get(`thumbs/${id}.webp`);
