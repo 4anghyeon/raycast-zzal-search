@@ -4,6 +4,7 @@ import {
   Alert,
   Clipboard,
   confirmAlert,
+  Detail,
   Grid,
   Icon,
   Keyboard,
@@ -21,6 +22,12 @@ import { errorMessage, errorToastAction } from "./lib/error-message";
 import { hasCachedOriginal, hasCachedThumb, originalPath, saveOriginal, thumbPath } from "./lib/files";
 import { useOriginalFallbackSync } from "./lib/use-original-fallback-sync";
 import { useThumbnailSync } from "./lib/use-thumbnail-sync";
+
+function cachedImagePath(zzal: Zzal): string | undefined {
+  if (hasCachedThumb(zzal.id)) return thumbPath(zzal.id);
+  if (hasCachedOriginal(zzal.id, zzal.ext)) return originalPath(zzal.id, zzal.ext);
+  return undefined;
+}
 
 async function ensureOriginalPath(zzal: Zzal): Promise<string> {
   if (hasCachedOriginal(zzal.id, zzal.ext)) {
@@ -77,6 +84,28 @@ async function copyZzal(zzal: Zzal) {
       primaryAction: errorToastAction(error),
     });
   }
+}
+
+function PreviewAction({ zzal }: { zzal: Zzal }) {
+  const { push } = useNavigation();
+
+  function handlePreview() {
+    const path = cachedImagePath(zzal);
+    if (!path) {
+      showToast({ style: Toast.Style.Failure, title: "아직 캐시된 이미지가 없습니다" });
+      return;
+    }
+    push(<Detail markdown={`![${zzal.name}](${encodeURI(path)})`} navigationTitle={zzal.name} />);
+  }
+
+  return (
+    <Action
+      title="크게 보기"
+      icon={Icon.Eye}
+      shortcut={{ macOS: { modifiers: ["cmd"], key: "l" }, Windows: { modifiers: ["ctrl"], key: "l" } }}
+      onAction={handlePreview}
+    />
+  );
 }
 
 function RegisterAction({ onRegistered }: { onRegistered: () => void }) {
@@ -159,9 +188,7 @@ export default function SearchZzal() {
   }, [isLoading, data]);
 
   function gridContent(zzal: Zzal) {
-    if (hasCachedThumb(zzal.id)) return thumbPath(zzal.id);
-    if (hasCachedOriginal(zzal.id, zzal.ext)) return originalPath(zzal.id, zzal.ext);
-    return Icon.Image;
+    return cachedImagePath(zzal) ?? Icon.Image;
   }
 
   return (
@@ -176,6 +203,7 @@ export default function SearchZzal() {
             <ActionPanel>
               <Action title="붙여넣기" icon={Icon.TextInput} onAction={() => pasteZzal(zzal)} />
               <Action title="복사" icon={Icon.Clipboard} onAction={() => copyZzal(zzal)} />
+              <PreviewAction zzal={zzal} />
               <EditAction zzal={zzal} onUpdated={revalidate} />
               <DeleteAction zzal={zzal} onDeleted={revalidate} />
               <RegisterAction onRegistered={revalidate} />
