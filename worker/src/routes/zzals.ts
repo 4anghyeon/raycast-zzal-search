@@ -4,7 +4,7 @@ import { Zzal } from "@zzal/shared/src/types";
 import { Hono } from "hono";
 import { Env } from "../env";
 import { detectImageType } from "../lib/magic-bytes";
-import { rowToZzal, ZzalRow } from "../lib/mapper";
+import { findRowById, rowToZzal } from "../lib/mapper";
 
 export const zzalsRoute = new Hono<{ Bindings: Env }>();
 
@@ -34,11 +34,7 @@ zzalsRoute.post("/", async (c) => {
   }
 
   const id = await hashToId(buffer);
-  const existing = await c.env.DB.prepare(
-    "SELECT id, name, keywords, mime, ext, size, width, height, has_thumb, created_at, updated_at, deleted_at FROM zzals WHERE id = ?",
-  )
-    .bind(id)
-    .first<ZzalRow>();
+  const existing = await findRowById(c.env.DB, id);
 
   if (existing && existing.deleted_at === null) {
     return c.json({ error: { code: "DUPLICATE", message: "이미 등록된 짤방입니다", item: rowToZzal(existing) } }, 409);
@@ -80,4 +76,59 @@ zzalsRoute.post("/", async (c) => {
   };
 
   return c.json(item, 201);
+});
+
+interface PatchBody {
+  name?: string;
+  keywords?: string[];
+}
+
+function isPatchBody(value: unknown): value is PatchBody {
+  if (typeof value !== "object" || value === null) return false;
+  const body = value as Record<string, unknown>;
+  if (body.name !== undefined && typeof body.name !== "string") return false;
+  if (body.keywords !== undefined) {
+    if (!Array.isArray(body.keywords) || !body.keywords.every((k) => typeof k === "string")) return false;
+  }
+  return true;
+}
+
+zzalsRoute.patch("/:id", async (c) => {
+  const id = c.req.param("id");
+  const existing = await findRowById(c.env.DB, id);
+
+  if (!existing || existing.deleted_at !== null) {
+    return c.json({ error: { code: "NOT_FOUND", message: "짤방을 찾을 수 없습니다" } }, 404);
+  }
+
+  const body: unknown = await c.req.json().catch(() => null);
+  if (!isPatchBody(body)) {
+    return c.json({ error: { code: "INVALID_BODY", message: "name, keywords 형식을 확인해주세요" } }, 400);
+  }
+
+  const current = rowToZzal(existing);
+  const name = body.name !== undefined ? normalizeName(body.name) : current.name;
+  const keywords = body.keywords !== undefined ? normalizeKeywords(body.keywords) : current.keywords;
+  const now = Date.now();
+
+  await c.env.DB.prepare("UPDATE zzals SET name = ?, keywords = ?, updated_at = ? WHERE id = ?")
+    .bind(name, JSON.stringify(keywords), now, id)
+    .run();
+
+  const item: Zzal = { ...current, name, keywords, updatedAt: now };
+  return c.json(item);
+});
+
+zzalsRoute.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const existing = await findRowById(c.env.DB, id);
+
+  if (!existing || existing.deleted_at !== null) {
+    return c.json({ error: { code: "NOT_FOUND", message: "짤방을 찾을 수 없습니다" } }, 404);
+  }
+
+  const now = Date.now();
+  await c.env.DB.prepare("UPDATE zzals SET deleted_at = ?, updated_at = ? WHERE id = ?").bind(now, now, id).run();
+
+  return c.body(null, 204);
 });

@@ -20,6 +20,14 @@ function parseKeywords(raw: string): string[] {
   return Array.isArray(data) ? data : [];
 }
 
+const ZZAL_COLUMNS =
+  "id, name, keywords, mime, ext, size, width, height, has_thumb, created_at, updated_at, deleted_at";
+
+export async function findRowById(db: D1Database, id: string): Promise<ZzalRow | null> {
+  const row = await db.prepare(`SELECT ${ZZAL_COLUMNS} FROM zzals WHERE id = ?`).bind(id).first<ZzalRow>();
+  return row ?? null;
+}
+
 export function rowToZzal(row: ZzalRow): Zzal {
   return {
     id: row.id,
