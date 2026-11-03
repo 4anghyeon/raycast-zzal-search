@@ -12,8 +12,10 @@ import {
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { join } from "path";
+import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
 import { fetchZzals } from "./lib/api";
+import { Zzal } from "./types";
 
 // 실제 썸네일/원본 캐시가 생기기 전까지, 붙여넣기·복사 동작을 검증하기 위한 자리 표시 파일
 const mockFilePath = join(environment.assetsPath, "extension-icon.png");
@@ -40,6 +42,18 @@ function RegisterAction({ onRegistered }: { onRegistered: () => void }) {
   );
 }
 
+function EditAction({ zzal, onUpdated }: { zzal: Zzal; onUpdated: () => void }) {
+  const { push } = useNavigation();
+  return (
+    <Action
+      title="수정"
+      icon={Icon.Pencil}
+      shortcut={Keyboard.Shortcut.Common.Edit}
+      onAction={() => push(<EditForm zzal={zzal} onUpdated={onUpdated} />)}
+    />
+  );
+}
+
 export default function SearchZzal() {
   const { data, isLoading, revalidate } = useCachedPromise(fetchZzals);
 
@@ -53,8 +67,9 @@ export default function SearchZzal() {
           keywords={zzal.keywords}
           actions={
             <ActionPanel>
-              <Action title="붙여넣기" onAction={pasteZzal} />
-              <Action title="복사" onAction={copyZzal} />
+              <Action title="붙여넣기" icon={Icon.TextInput} onAction={pasteZzal} />
+              <Action title="복사" icon={Icon.Clipboard} onAction={copyZzal} />
+              <EditAction zzal={zzal} onUpdated={revalidate} />
               <RegisterAction onRegistered={revalidate} />
             </ActionPanel>
           }
