@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "zzal-search",
-  "title": "짤",
-  "description": "짤 이미지를 검색해 붙여넣기/복사하고, 등록·수정·삭제까지 하는 개인용 도구",
+  "title": "짤방",
+  "description": "짤방 이미지를 검색해 붙여넣기/복사하고, 등록·수정·삭제까지 하는 개인용 도구",
   "icon": "extension-icon.png",
   "author": "user_99c6e1ac390f8ae78502",
   "platforms": [
@@ -16,10 +16,10 @@
   "commands": [
     {
       "name": "search-zzal",
-      "title": "짤 검색",
-      "subtitle": "",
-      "description": "키워드로 짤을 검색해 붙여넣기/복사",
-      "mode": "view"
+      "title": "짤방 검색",
+      "description": "키워드로 짤방을 검색해 붙여넣기/복사, 등록·수정·삭제",
+      "mode": "view",
+      "keywords": ["zzal"]
     }
   ],
   "tools": [],
