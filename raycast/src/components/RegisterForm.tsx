@@ -11,8 +11,7 @@ interface FormValues {
   keywords: string;
 }
 
-// FilePicker가 고른 파일이 PLAN이 지원하는 이미지 확장자인지만 가볍게 확인한다.
-// 실제 형식 검증(매직 바이트)은 서버가 한다.
+// 지원하는 이미지 확장자인지만 가볍게 확인한다. 실제 형식 검증(매직 바이트)은 서버가 한다.
 function isImageFile(filePath: string): boolean {
   return isSupportedImageExt(extname(filePath).slice(1));
 }

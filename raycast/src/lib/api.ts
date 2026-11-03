@@ -98,6 +98,12 @@ export async function updateZzal(id: string, patch: { name?: string; keywords?: 
   return item;
 }
 
+export async function fetchThumb(id: string): Promise<ArrayBuffer | null> {
+  const res = await request(`/zzals/${id}/thumb`);
+  if (!res.ok) return null;
+  return res.arrayBuffer();
+}
+
 export async function deleteZzal(id: string): Promise<void> {
   const res = await request(`/zzals/${id}`, { method: "DELETE" });
   if (!res.ok && res.status !== 404) {

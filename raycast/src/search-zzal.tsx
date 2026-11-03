@@ -19,6 +19,8 @@ import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
 import { deleteZzal, fetchZzals } from "./lib/api";
 import { errorMessage } from "./lib/error-message";
+import { hasCachedThumb, thumbPath } from "./lib/files";
+import { useThumbnailSync } from "./lib/use-thumbnail-sync";
 
 // 실제 썸네일/원본 캐시가 생기기 전까지, 붙여넣기·복사 동작을 검증하기 위한 자리 표시 파일
 const mockFilePath = join(environment.assetsPath, "extension-icon.png");
@@ -88,13 +90,14 @@ function DeleteAction({ zzal, onDeleted }: { zzal: Zzal; onDeleted: () => void }
 
 export default function SearchZzal() {
   const { data, isLoading, revalidate } = useCachedPromise(fetchZzals);
+  useThumbnailSync(data ?? []);
 
   return (
     <Grid isLoading={isLoading} inset={Grid.Inset.Small}>
       {(data ?? []).map((zzal) => (
         <Grid.Item
           key={zzal.id}
-          content={Icon.Image}
+          content={hasCachedThumb(zzal.id) ? thumbPath(zzal.id) : Icon.Image}
           title={zzal.name}
           keywords={zzal.keywords}
           actions={

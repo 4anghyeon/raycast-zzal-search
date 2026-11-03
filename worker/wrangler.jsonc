@@ -15,5 +15,10 @@
       "binding": "FILES",
       "bucket_name": "zzal-files"
     }
-  ]
+  ],
+  // 이미지 변환은 로컬에서 에뮬레이션되지 않아 remote: true로 로컬 dev에서도 실제 서비스를 호출한다.
+  "images": {
+    "binding": "IMAGES",
+    "remote": true
+  }
 }

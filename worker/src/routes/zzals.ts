@@ -5,10 +5,11 @@ import { Hono } from "hono";
 import { Env } from "../env";
 import { detectImageType } from "../lib/magic-bytes";
 import { findRowById, listRows, rowToZzal } from "../lib/mapper";
+import { generateThumbnail } from "../lib/thumbnail";
 
 export const zzalsRoute = new Hono<{ Bindings: Env }>();
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // D4
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // Cloudflare Images 입력 한도
 
 zzalsRoute.get("/", async (c) => {
   const sinceParam = c.req.query("since");
@@ -53,19 +54,26 @@ zzalsRoute.post("/", async (c) => {
 
   await c.env.FILES.put(`originals/${id}.${detected.ext}`, buffer);
 
+  const thumbStream = await generateThumbnail(c.env, buffer);
+  const hasThumb = thumbStream !== null;
+  if (thumbStream) {
+    await c.env.FILES.put(`thumbs/${id}.webp`, thumbStream);
+  }
+
   const now = Date.now();
   const createdAt = existing?.created_at ?? now;
 
   await c.env.DB.prepare(
     `INSERT INTO zzals (id, name, keywords, mime, ext, size, width, height, has_thumb, created_at, updated_at, deleted_at)
-     VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?, NULL)
+     VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, NULL)
      ON CONFLICT(id) DO UPDATE SET
        name = excluded.name,
        keywords = excluded.keywords,
+       has_thumb = excluded.has_thumb,
        updated_at = excluded.updated_at,
        deleted_at = NULL`,
   )
-    .bind(id, name, JSON.stringify(keywords), detected.mime, detected.ext, file.size, createdAt, now)
+    .bind(id, name, JSON.stringify(keywords), detected.mime, detected.ext, file.size, hasThumb ? 1 : 0, createdAt, now)
     .run();
 
   const item: Zzal = {
@@ -77,13 +85,24 @@ zzalsRoute.post("/", async (c) => {
     size: file.size,
     width: null,
     height: null,
-    hasThumb: false,
+    hasThumb,
     createdAt,
     updatedAt: now,
     deletedAt: null,
   };
 
   return c.json(item, 201);
+});
+
+zzalsRoute.get("/:id/thumb", async (c) => {
+  const id = c.req.param("id");
+  const object = await c.env.FILES.get(`thumbs/${id}.webp`);
+
+  if (!object) {
+    return c.json({ error: { code: "NOT_FOUND", message: "썸네일을 찾을 수 없습니다" } }, 404);
+  }
+
+  return new Response(object.body, { headers: { "Content-Type": "image/webp" } });
 });
 
 interface PatchBody {
