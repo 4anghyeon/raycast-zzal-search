@@ -14,14 +14,21 @@ import {
 } from "@raycast/api";
 import { showFailureToast, useCachedPromise } from "@raycast/utils";
 import { Zzal } from "@zzal/shared/src/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
 import { deleteZzal, fetchOriginal, fetchZzals } from "./lib/api";
 import { errorMessage, errorToastAction } from "./lib/error-message";
 import { hasCachedOriginal, hasCachedThumb, originalPath, saveOriginal, thumbPath } from "./lib/files";
+import { useDebouncedValue } from "./lib/use-debounced-value";
 import { useOriginalFallbackSync } from "./lib/use-original-fallback-sync";
 import { useThumbnailSync } from "./lib/use-thumbnail-sync";
+
+function matchesSearch(zzal: Zzal, query: string): boolean {
+  if (query === "") return true;
+  const haystack = [zzal.name, ...zzal.keywords].join(" ").toLowerCase();
+  return haystack.includes(query.toLowerCase());
+}
 
 function cachedImagePath(zzal: Zzal): string | undefined {
   if (hasCachedThumb(zzal.id)) return thumbPath(zzal.id);
@@ -175,6 +182,10 @@ export default function SearchZzal() {
   useThumbnailSync(data ?? []);
   useOriginalFallbackSync(data ?? []);
 
+  // 타이핑마다 바로 다시 그리면 썸네일이 깜빡여서, 입력이 잠시 멈췄을 때만 필터링한다.
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearchText = useDebouncedValue(searchText, 200);
+
   // 캐시가 비어 처음 전체 동기화할 때만 보여준다. 등록/수정/삭제 이후의 재조회는
   // data가 이미 있어서 해당되지 않고, 각자 자기 토스트를 보여준다.
   useEffect(() => {
@@ -191,14 +202,15 @@ export default function SearchZzal() {
     return cachedImagePath(zzal) ?? Icon.Image;
   }
 
+  const filteredData = (data ?? []).filter((zzal) => matchesSearch(zzal, debouncedSearchText));
+
   return (
-    <Grid isLoading={isLoading} inset={Grid.Inset.Zero}>
-      {(data ?? []).map((zzal) => (
+    <Grid isLoading={isLoading} inset={Grid.Inset.Zero} filtering={false} onSearchTextChange={setSearchText}>
+      {filteredData.map((zzal) => (
         <Grid.Item
           key={zzal.id}
           content={gridContent(zzal)}
           title={zzal.name}
-          keywords={zzal.keywords}
           actions={
             <ActionPanel>
               <Action title="붙여넣기" icon={Icon.TextInput} onAction={() => pasteZzal(zzal)} />
