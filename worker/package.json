@@ -6,15 +6,21 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "fix-lint": "eslint src --fix",
     "db:migrate:local": "wrangler d1 migrations apply zzal-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply zzal-db --remote"
   },
   "dependencies": {
-    "hono": "^4.13.16"
+    "hono": "^4.13.16",
+    "@zzal/shared": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261103.1",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
     "wrangler": "^4.156.2"
   }
 }
