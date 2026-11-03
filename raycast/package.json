@@ -1,0 +1,46 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "zzal-search",
+  "title": "짤방",
+  "description": "짤방 이미지를 검색해 붙여넣기/복사하고, 등록·수정·삭제까지 하는 개인용 도구",
+  "icon": "extension-icon.png",
+  "author": "user_99c6e1ac390f8ae78502",
+  "platforms": [
+    "Windows",
+    "macOS"
+  ],
+  "categories": [
+    "Applications"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search-zzal",
+      "title": "짤방 검색",
+      "description": "키워드로 짤방을 검색해 붙여넣기/복사, 등록·수정·삭제",
+      "mode": "view",
+      "keywords": ["zzal"]
+    }
+  ],
+  "tools": [],
+  "dependencies": {
+    "@raycast/api": "^2.10.1",
+    "@raycast/utils": "^2.2.7"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
