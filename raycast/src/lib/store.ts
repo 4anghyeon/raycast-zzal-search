@@ -1,6 +1,6 @@
 import { Cache } from "@raycast/api";
-import { Zzal } from "@zzal/shared";
-import { mockZzals } from "./mockData";
+import { Zzal } from "@zzal/shared/src/types";
+import { mockZzals } from "./mock-data";
 
 const cache = new Cache();
 const KEY = "zzals";

@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { useState } from "react";
 import { updateZzal } from "../lib/api";
-import { Zzal } from "@zzal/shared";
+import { Zzal } from "@zzal/shared/src/types";
 
 interface FormValues {
   name: string;
@@ -34,7 +34,13 @@ export default function EditForm({ zzal, onUpdated }: EditFormProps) {
       }
     >
       <Form.TextField id="name" title="이름" value={name} onChange={setName} />
-      <Form.TextField id="keywords" title="키워드" placeholder="쉼표로 구분 (예: 고양이, 놀람)" value={keywords} onChange={setKeywords} />
+      <Form.TextField
+        id="keywords"
+        title="키워드"
+        placeholder="쉼표로 구분 (예: 고양이, 놀람)"
+        value={keywords}
+        onChange={setKeywords}
+      />
     </Form>
   );
 }

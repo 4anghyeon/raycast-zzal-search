@@ -13,7 +13,7 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { Zzal } from "@zzal/shared";
+import { Zzal } from "@zzal/shared/src/types";
 import { join } from "path";
 import EditForm from "./components/EditForm";
 import RegisterForm from "./components/RegisterForm";
