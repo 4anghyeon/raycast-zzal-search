@@ -1,8 +1,7 @@
 import { stat } from "fs/promises";
-import { Zzal } from "../types";
+import { Zzal, normalizeKeywords, normalizeName } from "@zzal/shared";
 import { hashFile } from "./hash";
 import { mimeFromExt } from "./image";
-import { normalizeKeywords, normalizeName } from "./normalize";
 import * as store from "./store";
 
 export async function fetchZzals(): Promise<Zzal[]> {

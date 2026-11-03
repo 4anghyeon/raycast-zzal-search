@@ -2,6 +2,7 @@
   "name": "zzal",
   "private": true,
   "workspaces": [
-    "raycast"
+    "raycast",
+    "packages/*"
   ]
 }

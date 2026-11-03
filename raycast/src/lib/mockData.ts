@@ -1,4 +1,4 @@
-import { Zzal } from "../types";
+import { Zzal } from "@zzal/shared";
 
 const DAY = 86400000;
 const now = Date.now();

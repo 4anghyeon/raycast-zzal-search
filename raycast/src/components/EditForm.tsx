@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { useState } from "react";
 import { updateZzal } from "../lib/api";
-import { Zzal } from "../types";
+import { Zzal } from "@zzal/shared";
 
 interface FormValues {
   name: string;
