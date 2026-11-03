@@ -20,5 +20,8 @@
   "images": {
     "binding": "IMAGES",
     "remote": true
+  },
+  "triggers": {
+    "crons": ["0 0 * * *"]
   }
 }
